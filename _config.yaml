@@ -1,0 +1,7 @@
+title: Comms
+description: Mod Commissions
+baseurl: "/Commission"
+url: "https://notmagelock.github.io"
+
+markdown: kramdown
+theme: minima
