@@ -16,22 +16,28 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      flex-direction: column;
     }
     h1 {
       font-weight: 900;
       margin-bottom: 20px;
+      text-align: center;
     }
     form {
       background-color: #4a007d;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     label {
       display: block;
       margin-bottom: 5px;
       font-weight: 400;
+      width: 100%;
     }
     input, textarea, select, button {
       width: 100%;
@@ -40,6 +46,10 @@
       border: none;
       border-radius: 5px;
       font-size: 16px;
+    }
+    textarea {
+      height: 150px;
+      resize: none;
     }
     button {
       background-color: #6200ea;
@@ -50,11 +60,22 @@
     button:hover {
       background-color: #3700b3;
     }
+    #message {
+      margin-top: 10px;
+      font-size: 16px;
+      text-align: center;
+    }
+    #message.success {
+      color: #4caf50;
+    }
+    #message.error {
+      color: #f44336;
+    }
   </style>
 </head>
 <body>
-  <h1>Mod Commission Form</h1>
   <form id="commission-form">
+    <h1>Mod Commission Form</h1>
     <label for="discord-user">Discord Username:</label>
     <input type="text" id="discord-user" name="discordUser" required>
     <label for="mod-description">Mod Description:</label>
@@ -66,6 +87,7 @@
       <option value="15">Advanced Mod - $15</option>
     </select>
     <button type="submit">Submit</button>
+    <div id="message"></div>
   </form>
 
   <script>
@@ -80,6 +102,8 @@
         content: `New Mod Commission\n\n**Discord User:** ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`
       };
 
+      const messageDiv = document.getElementById('message');
+
       try {
         const response = await fetch(webhookUrl, {
           method: 'POST',
@@ -90,13 +114,16 @@
         });
 
         if (response.ok) {
-          alert('Commission submitted successfully!');
+          messageDiv.textContent = 'Commission submitted successfully!';
+          messageDiv.className = 'success';
           document.getElementById('commission-form').reset();
         } else {
-          alert('Failed to submit commission. Please try again.');
+          messageDiv.textContent = 'Failed to submit commission. Please try again.';
+          messageDiv.className = 'error';
         }
       } catch (error) {
-        alert('Error submitting commission. Please try again.');
+        messageDiv.textContent = 'Error submitting commission. Please try again.';
+        messageDiv.className = 'error';
       }
     });
   </script>
