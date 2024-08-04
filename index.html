@@ -3,21 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comms</title>
+  <title>Mod Commissions</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&display=swap">
+  <link rel="icon" href="https://notmagelock.github.io/assets/favicon.ico" type="image/x-icon">
+  <style>
+    body {
+      font-family: 'Londrina Solid', cursive;
+      background-color: #2c003e;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+    h1 {
+      font-weight: 900;
+      margin-bottom: 20px;
+    }
+    form {
+      background-color: #4a007d;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 400;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #6200ea;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #3700b3;
+    }
+  </style>
 </head>
 <body>
   <h1>Mod Commission Form</h1>
   <form id="commission-form">
     <label for="discord-user">Discord Username:</label>
-    <input type="text" id="discord-user" name="discordUser" required><br><br>
+    <input type="text" id="discord-user" name="discordUser" required>
     <label for="mod-description">Mod Description:</label>
-    <textarea id="mod-description" name="modDescription" required></textarea><br><br>
+    <textarea id="mod-description" name="modDescription" required></textarea>
     <label for="mod-type">Select Mod Type:</label>
     <select id="mod-type" name="modType" required>
       <option value="5">Basic Mod - $5</option>
       <option value="10">Simpler Advanced Mod - $10</option>
       <option value="15">Advanced Mod - $15</option>
-    </select><br><br>
+    </select>
     <button type="submit">Submit</button>
   </form>
 
