@@ -166,7 +166,7 @@
       <option value="15">Advanced Mod - $15</option>
     </select>
     <div class="file-upload" onclick="document.getElementById('file-input').click();">
-      <input type="file" id="file-input" accept="*" multiple onchange="displayFileDetails()">
+      <input type="file" id="file-input" accept="*" multiple onchange="handleFileSelect()">
     </div>
     <div class="file-details" id="file-details"></div>
     <button type="submit">Submit</button>
@@ -217,32 +217,44 @@
       }
     });
 
-    function displayFileDetails() {
+    function handleFileSelect() {
       const fileInput = document.getElementById('file-input');
+      const fileDetails = document.getElementById('file-details');
+      const files = Array.from(fileInput.files);
+
+      files.forEach(file => {
+        if (!selectedFiles.includes(file)) {
+          selectedFiles.push(file);
+        }
+      });
+
+      updateFileDetails();
+    }
+
+    function updateFileDetails() {
       const fileDetails = document.getElementById('file-details');
       fileDetails.innerHTML = '';
 
-      const files = Array.from(fileInput.files);
-      selectedFiles = files;
-
-      files.forEach((file, index) => {
+      selectedFiles.forEach((file, index) => {
         const fileDiv = document.createElement('div');
         fileDiv.className = 'file-item';
-        fileDiv.innerHTML = `<div>${file.name}</div><div>${(file.size / 1024).toFixed(2)} KB</div>`;
+
         const removeButton = document.createElement('button');
         removeButton.className = 'remove-file';
         removeButton.textContent = '×';
         removeButton.onclick = () => {
           selectedFiles = selectedFiles.filter((_, i) => i !== index);
-          fileInput.files = new DataTransfer().files;
-          selectedFiles.forEach(file => {
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            fileInput.files = dt.files;
-          });
-          displayFileDetails();
+          updateFileDetails();
         };
         fileDiv.appendChild(removeButton);
+
+        const fileNameDiv = document.createElement('div');
+        fileNameDiv.textContent = file.name;
+        fileDiv.appendChild(fileNameDiv);
+
+        const fileSizeDiv = document.createElement('div');
+        fileSizeDiv.textContent = `${(file.size / 1024).toFixed(2)} KB`;
+        fileDiv.appendChild(fileSizeDiv);
 
         if (file.type.startsWith('image/')) {
           const img = document.createElement('img');
