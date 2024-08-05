@@ -155,7 +155,10 @@
       const webhookUrl = 'https://discord.com/api/webhooks/1269782573706510407/S_rWTcWNqUSyQ3OpIMAq00WAqJzl6Y9IBFNs3rID68AminEiI31CQrAGKUsJsSQ7t6KK';
 
       const formData = new FormData();
-      formData.append('content', `New commission from ${discordUser}\n\n**Discord User:** ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`);
+      formData.append('payload_json', JSON.stringify({
+        content: `New commission from ${discordUser}\n\n**Discord User:** ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`,
+        username: `Comms - ${discordUser}`
+      }));
 
       for (let i = 0; i < files.length; i++) {
         formData.append('file' + (i + 1), files[i], files[i].name);
@@ -166,9 +169,6 @@
       try {
         const response = await fetch(webhookUrl, {
           method: 'POST',
-          headers: {
-            'X-Webhook-Name': `Comms - ${discordUser}`
-          },
           body: formData
         });
 
