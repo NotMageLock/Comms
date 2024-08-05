@@ -73,6 +73,46 @@
     #message.error {
       color: #f44336;
     }
+    .file-upload {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 2px dashed #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      position: relative;
+    }
+    .file-upload:hover {
+      border-color: #6200ea;
+    }
+    .file-upload input[type="file"] {
+      display: none;
+    }
+    .file-upload::after {
+      content: '⇧ Attach files';
+      font-size: 16px;
+      color: #fff;
+      position: absolute;
+    }
+    .file-details {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .file-details img {
+      max-width: 100px;
+      max-height: 100px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .file-details div {
+      font-size: 14px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -88,6 +128,13 @@
       <option value="10">Simpler Advanced Mod - $10</option>
       <option value="15">Advanced Mod - $15</option>
     </select>
+    <div class="file-upload" onclick="document.getElementById('file-input').click();">
+      <input type="file" id="file-input" accept="image/*" onchange="displayFileDetails()">
+    </div>
+    <div class="file-details" id="file-details">
+      <img id="file-preview" src="" alt="File Preview">
+      <div id="file-info"></div>
+    </div>
     <button type="submit">Submit</button>
     <div id="message"></div>
   </form>
@@ -119,6 +166,7 @@
           messageDiv.textContent = 'Commission submitted successfully!';
           messageDiv.className = 'success';
           document.getElementById('commission-form').reset();
+          document.getElementById('file-details').style.display = 'none';
         } else {
           messageDiv.textContent = 'Failed to submit commission. Please try again.';
           messageDiv.className = 'error';
@@ -128,6 +176,32 @@
         messageDiv.className = 'error';
       }
     });
+
+    function displayFileDetails() {
+      const fileInput = document.getElementById('file-input');
+      const fileDetails = document.getElementById('file-details');
+      const filePreview = document.getElementById('file-preview');
+      const fileInfo = document.getElementById('file-info');
+
+      const file = fileInput.files[0];
+      if (file) {
+        fileDetails.style.display = 'flex';
+        fileInfo.innerHTML = `<div>${file.name}</div><div>${(file.size / 1024).toFixed(2)} KB</div>`;
+
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            filePreview.src = e.target.result;
+            filePreview.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        } else {
+          filePreview.style.display = 'none';
+        }
+      } else {
+        fileDetails.style.display = 'none';
+      }
+    }
   </script>
 </body>
 </html>
