@@ -121,6 +121,7 @@
       border: 1px solid #fff;
       border-radius: 5px;
       background-color: #4a007d;
+      overflow: hidden;
     }
     .file-item img, .file-item video {
       max-width: 100px;
@@ -132,8 +133,8 @@
     }
     .file-item .remove-file {
       position: absolute;
-      top: 5px;
-      right: 5px;
+      top: -10px;
+      right: -10px;
       background-color: #f44336;
       color: #ffffff;
       border: none;
@@ -219,7 +220,6 @@
 
     function handleFileSelect() {
       const fileInput = document.getElementById('file-input');
-      const fileDetails = document.getElementById('file-details');
       const files = Array.from(fileInput.files);
 
       files.forEach(file => {
