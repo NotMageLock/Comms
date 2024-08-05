@@ -117,6 +117,10 @@
       align-items: center;
       position: relative;
       margin-bottom: 10px;
+      padding: 5px;
+      border: 1px solid #fff;
+      border-radius: 5px;
+      background-color: #4a007d;
     }
     .file-item img, .file-item video {
       max-width: 100px;
@@ -170,7 +174,7 @@
   </form>
 
   <script>
-    const selectedFiles = [];
+    let selectedFiles = [];
 
     document.getElementById('commission-form').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -202,7 +206,7 @@
           messageDiv.className = 'success';
           document.getElementById('commission-form').reset();
           document.getElementById('file-details').innerHTML = '';
-          selectedFiles.length = 0;
+          selectedFiles = [];
         } else {
           messageDiv.textContent = 'Failed to submit commission. Please try again.';
           messageDiv.className = 'error';
@@ -219,17 +223,23 @@
       fileDetails.innerHTML = '';
 
       const files = Array.from(fileInput.files);
-      selectedFiles.push(...files);
+      selectedFiles = files;
 
-      selectedFiles.forEach((file, index) => {
+      files.forEach((file, index) => {
         const fileDiv = document.createElement('div');
         fileDiv.className = 'file-item';
         fileDiv.innerHTML = `<div>${file.name}</div><div>${(file.size / 1024).toFixed(2)} KB</div>`;
         const removeButton = document.createElement('button');
         removeButton.className = 'remove-file';
-        removeButton.textContent = 'x';
+        removeButton.textContent = '×';
         removeButton.onclick = () => {
-          selectedFiles.splice(index, 1);
+          selectedFiles = selectedFiles.filter((_, i) => i !== index);
+          fileInput.files = new DataTransfer().files;
+          selectedFiles.forEach(file => {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+          });
           displayFileDetails();
         };
         fileDiv.appendChild(removeButton);
@@ -239,18 +249,18 @@
           const reader = new FileReader();
           reader.onload = function(e) {
             img.src = e.target.result;
-            fileDiv.appendChild(img);
           };
           reader.readAsDataURL(file);
+          fileDiv.appendChild(img);
         } else if (file.type.startsWith('audio/')) {
           const audio = document.createElement('audio');
           audio.controls = true;
           const reader = new FileReader();
           reader.onload = function(e) {
             audio.src = e.target.result;
-            fileDiv.appendChild(audio);
           };
           reader.readAsDataURL(file);
+          fileDiv.appendChild(audio);
         } else if (file.type.startsWith('video/')) {
           const video = document.createElement('video');
           video.controls = true;
@@ -258,9 +268,9 @@
           const reader = new FileReader();
           reader.onload = function(e) {
             video.src = e.target.result;
-            fileDiv.appendChild(video);
           };
           reader.readAsDataURL(file);
+          fileDiv.appendChild(video);
         }
 
         fileDetails.appendChild(fileDiv);
