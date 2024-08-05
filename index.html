@@ -6,6 +6,14 @@
   <title>Mod Commission</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Lilita+One&display=swap">
   <link rel="icon" href="https://notmagelock.github.io/assets/favicon.ico" type="image/x-icon">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Mod Commissions">
+  <meta property="og:description" content="Commission a mod from Lock">
+  <meta property="og:image" content="https://notmagelock.github.io/assets/favicon.ico">
+  <meta property="og:url" content="https://notmagelock.github.io/Comms/">
+  <meta property="og:type" content="website">
+
   <style>
     body {
       font-family: 'Lilita One', cursive;
@@ -50,7 +58,7 @@
       font-family: 'Lilita One', cursive;
     }
     textarea {
-      height: 150px; /* Adjust height to make it more square-shaped */
+      height: 150px;
       resize: none;
     }
     button {
@@ -73,79 +81,74 @@
     #message.error {
       color: #f44336;
     }
-    .file-div {
-      position: relative;
-      margin-bottom: 15px;
+    .file-upload {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
       padding: 10px;
-      border: 1px solid #ffffff;
+      margin-bottom: 15px;
+      border: 2px dashed #fff;
       border-radius: 5px;
+      cursor: pointer;
+      position: relative;
+    }
+    .file-upload:hover {
+      border-color: #6200ea;
+    }
+    .file-upload input[type="file"] {
+      display: none;
+    }
+    .file-upload::after {
+      content: '⇧ Attach files';
+      font-size: 16px;
+      color: #fff;
+      position: absolute;
+    }
+    .file-details {
       display: flex;
       flex-direction: column;
       align-items: center;
-      background-color: #6200ea;
+      width: 100%;
     }
-    .file-div img, .file-div video, .file-div audio {
+    .file-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      margin-bottom: 10px;
+      padding: 5px;
+      border: 1px solid #fff;
+      border-radius: 5px;
+      background-color: #4a007d;
+    }
+    .file-item img, .file-item video {
       max-width: 100px;
       max-height: 100px;
-      margin-top: 10px;
+      border-radius: 5px;
     }
-    .remove-file-btn {
+    .file-item audio {
+      width: 100px;
+    }
+    .file-item .remove-file {
       position: absolute;
-      top: -10px;
-      right: -10px;
+      top: 5px;
+      right: 5px;
       background-color: #f44336;
       color: #ffffff;
       border: none;
       border-radius: 50%;
+      cursor: pointer;
       width: 20px;
       height: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
-      cursor: pointer;
-      z-index: 1;
+      font-size: 14px;
     }
-    .file-input-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 15px;
-      border: 2px dashed #ffffff;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .file-input-wrapper:hover {
-      background-color: #3700b3;
-    }
-    .file-input {
-      display: none;
-    }
-    .tooltip {
-      position: relative;
-      display: inline-block;
-      cursor: pointer;
-      margin-left: 5px;
-    }
-    .tooltip .tooltiptext {
-      visibility: hidden;
-      width: 200px;
-      background-color: #555;
-      color: #fff;
+    .file-item div {
+      font-size: 14px;
       text-align: center;
-      border-radius: 5px;
-      padding: 5px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%; /* Position above the tooltip element */
-      left: 50%;
-      margin-left: -100px; /* Center the tooltip */
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .tooltip:hover .tooltiptext {
-      visibility: visible;
-      opacity: 1;
     }
   </style>
 </head>
@@ -156,47 +159,94 @@
     <input type="text" id="discord-user" name="discordUser" required>
     <label for="mod-description">Mod Description:</label>
     <textarea id="mod-description" name="modDescription" required></textarea>
-    <label for="mod-type">Select Mod Type:
-      <span class="tooltip">?
-        <span class="tooltiptext">Mods will be paid through steam wallet credit.</span>
-      </span>
-    </label>
+    <label for="mod-type">Select Mod Type:</label>
     <select id="mod-type" name="modType" required>
       <option value="5">Basic Mod - $5</option>
       <option value="10">Simpler Advanced Mod - $10</option>
       <option value="15">Advanced Mod - $15</option>
     </select>
-    <div class="file-input-wrapper" id="file-input-wrapper">
-      <span>Attach Files</span>
-      <input type="file" id="file-input" class="file-input" name="fileInput" multiple>
+    <div class="file-upload" onclick="document.getElementById('file-input').click();">
+      <input type="file" id="file-input" accept="*" multiple onchange="handleFileSelect()">
     </div>
-    <div id="file-details"></div>
+    <div class="file-details" id="file-details"></div>
     <button type="submit">Submit</button>
     <div id="message"></div>
   </form>
 
   <script>
-    const form = document.getElementById('commission-form');
-    const fileInput = document.getElementById('file-input');
-    const fileDetails = document.getElementById('file-details');
-    const fileInputWrapper = document.getElementById('file-input-wrapper');
+    let selectedFiles = [];
 
-    fileInputWrapper.addEventListener('click', () => {
-      fileInput.click();
+    document.getElementById('commission-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const discordUser = document.getElementById('discord-user').value;
+      const modDescription = document.getElementById('mod-description').value;
+      const modType = document.getElementById('mod-type').value;
+      const webhookUrl = 'https://discord.com/api/webhooks/1269782573706510407/S_rWTcWNqUSyQ3OpIMAq00WAqJzl6Y9IBFNs3rID68AminEiI31CQrAGKUsJsSQ7t6KK';
+
+      const formData = new FormData();
+      formData.append('payload_json', JSON.stringify({
+        content: `New commission from ${discordUser}\n\n**Discord User:** ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`,
+        username: `Comms - ${discordUser}`
+      }));
+
+      selectedFiles.forEach((file, index) => {
+        formData.append('file' + (index + 1), file, file.name);
+      });
+
+      const messageDiv = document.getElementById('message');
+
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          messageDiv.textContent = 'Commission submitted successfully!';
+          messageDiv.className = 'success';
+          document.getElementById('commission-form').reset();
+          document.getElementById('file-details').innerHTML = '';
+          selectedFiles = [];
+        } else {
+          messageDiv.textContent = 'Failed to submit commission. Please try again.';
+          messageDiv.className = 'error';
+        }
+      } catch (error) {
+        messageDiv.textContent = 'Error submitting commission. Please try again.';
+        messageDiv.className = 'error';
+      }
     });
 
-    fileInput.addEventListener('change', function() {
-      Array.from(fileInput.files).forEach(file => {
-        const fileDiv = document.createElement('div');
-        fileDiv.classList.add('file-div');
+    function handleFileSelect() {
+      const fileInput = document.getElementById('file-input');
+      const fileDetails = document.getElementById('file-details');
+      const files = Array.from(fileInput.files);
 
-        const removeBtn = document.createElement('button');
-        removeBtn.classList.add('remove-file-btn');
-        removeBtn.textContent = 'X';
-        removeBtn.addEventListener('click', function() {
-          fileDiv.remove();
-        });
-        fileDiv.appendChild(removeBtn);
+      files.forEach(file => {
+        if (!selectedFiles.includes(file)) {
+          selectedFiles.push(file);
+        }
+      });
+
+      updateFileDetails();
+    }
+
+    function updateFileDetails() {
+      const fileDetails = document.getElementById('file-details');
+      fileDetails.innerHTML = '';
+
+      selectedFiles.forEach((file, index) => {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file-item';
+
+        const removeButton = document.createElement('button');
+        removeButton.className = 'remove-file';
+        removeButton.textContent = '×';
+        removeButton.onclick = () => {
+          selectedFiles = selectedFiles.filter((_, i) => i !== index);
+          updateFileDetails();
+        };
+        fileDiv.appendChild(removeButton);
 
         const fileNameDiv = document.createElement('div');
         fileNameDiv.textContent = file.name;
@@ -226,6 +276,7 @@
         } else if (file.type.startsWith('video/')) {
           const video = document.createElement('video');
           video.controls = true;
+          video.width = 100;
           const reader = new FileReader();
           reader.onload = function(e) {
             video.src = e.target.result;
@@ -236,40 +287,7 @@
 
         fileDetails.appendChild(fileDiv);
       });
-    });
-
-    form.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const discordUser = document.getElementById('discord-user').value;
-      const modDescription = document.getElementById('mod-description').value;
-      const modType = document.getElementById('mod-type').value;
-      const webhookUrl = 'https://discord.com/api/webhooks/1269782573706510407/S_rWTcWNqUSyQ3OpIMAq00WAqJzl6Y9IBFNs3rID68AminEiI31CQrAGKUsJsSQ7t6KK';
-
-      const data = new FormData();
-      data.append('content', `New commission from ${discordUser}\n\n**Discord User:** ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`);
-      Array.from(fileInput.files).forEach((file, index) => {
-        data.append(`file${index + 1}`, file);
-      });
-
-      try {
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          body: data,
-        });
-
-        if (response.ok) {
-          document.getElementById('message').textContent = 'Commission submitted successfully!';
-          document.getElementById('message').className = 'success';
-          form.reset();
-          fileDetails.innerHTML = '';
-        } else {
-          throw new Error('Failed to submit commission');
-        }
-      } catch (error) {
-        document.getElementById('message').textContent = 'Error submitting commission. Please try again.';
-        document.getElementById('message').className = 'error';
-      }
-    });
+    }
   </script>
 </body>
 </html>
