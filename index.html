@@ -110,16 +110,12 @@
       flex-direction: column;
       align-items: center;
       margin-bottom: 15px;
-    }
-    .file-input-label {
-      background-color: #6200ea;
-      color: #ffffff;
+      border: 2px dashed #ffffff;
       padding: 10px;
       border-radius: 5px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
     }
-    .file-input-label:hover {
+    .file-input-wrapper:hover {
       background-color: #3700b3;
     }
     .file-input {
@@ -129,6 +125,7 @@
       position: relative;
       display: inline-block;
       cursor: pointer;
+      margin-left: 5px;
     }
     .tooltip .tooltiptext {
       visibility: hidden;
@@ -169,8 +166,8 @@
       <option value="10">Simpler Advanced Mod - $10</option>
       <option value="15">Advanced Mod - $15</option>
     </select>
-    <div class="file-input-wrapper">
-      <label for="file-input" class="file-input-label">Attach Files</label>
+    <div class="file-input-wrapper" id="file-input-wrapper">
+      <span>Attach Files</span>
       <input type="file" id="file-input" class="file-input" name="fileInput" multiple>
     </div>
     <div id="file-details"></div>
@@ -182,6 +179,11 @@
     const form = document.getElementById('commission-form');
     const fileInput = document.getElementById('file-input');
     const fileDetails = document.getElementById('file-details');
+    const fileInputWrapper = document.getElementById('file-input-wrapper');
+
+    fileInputWrapper.addEventListener('click', () => {
+      fileInput.click();
+    });
 
     fileInput.addEventListener('change', function() {
       Array.from(fileInput.files).forEach(file => {
@@ -224,7 +226,6 @@
         } else if (file.type.startsWith('video/')) {
           const video = document.createElement('video');
           video.controls = true;
-          video.width = 100;
           const reader = new FileReader();
           reader.onload = function(e) {
             video.src = e.target.result;
@@ -239,20 +240,21 @@
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
-
       const discordUser = document.getElementById('discord-user').value;
       const modDescription = document.getElementById('mod-description').value;
       const modType = document.getElementById('mod-type').value;
       const webhookUrl = 'https://discord.com/api/webhooks/1269782573706510407/S_rWTcWNqUSyQ3OpIMAq00WAqJzl6Y9IBFNs3rID68AminEiI31CQrAGKUsJsSQ7t6KK';
-      
-      const formData = new FormData();
-      formData.append('content', `New commission from ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`);
-      Array.from(fileInput.files).forEach(file => formData.append('file', file));
+
+      const data = new FormData();
+      data.append('content', `New commission from ${discordUser}\n\n**Discord User:** ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`);
+      Array.from(fileInput.files).forEach((file, index) => {
+        data.append(`file${index + 1}`, file);
+      });
 
       try {
         const response = await fetch(webhookUrl, {
           method: 'POST',
-          body: formData
+          body: data,
         });
 
         if (response.ok) {
@@ -261,18 +263,12 @@
           form.reset();
           fileDetails.innerHTML = '';
         } else {
-          document.getElementById('message').textContent = 'Error submitting commission. Please try again.';
-          document.getElementById('message').className = 'error';
+          throw new Error('Failed to submit commission');
         }
       } catch (error) {
         document.getElementById('message').textContent = 'Error submitting commission. Please try again.';
         document.getElementById('message').className = 'error';
       }
-    });
-
-    window.addEventListener('beforeunload', function() {
-      fileInput.value = '';
-      fileDetails.innerHTML = '';
     });
   </script>
 </body>
