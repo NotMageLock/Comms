@@ -105,6 +105,51 @@
       cursor: pointer;
       z-index: 1;
     }
+    .file-input-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .file-input-label {
+      background-color: #6200ea;
+      color: #ffffff;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .file-input-label:hover {
+      background-color: #3700b3;
+    }
+    .file-input {
+      display: none;
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%; /* Position above the tooltip element */
+      left: 50%;
+      margin-left: -100px; /* Center the tooltip */
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -114,14 +159,20 @@
     <input type="text" id="discord-user" name="discordUser" required>
     <label for="mod-description">Mod Description:</label>
     <textarea id="mod-description" name="modDescription" required></textarea>
-    <label for="mod-type">Select Mod Type:</label>
+    <label for="mod-type">Select Mod Type:
+      <span class="tooltip">?
+        <span class="tooltiptext">Mods will be paid through steam wallet credit.</span>
+      </span>
+    </label>
     <select id="mod-type" name="modType" required>
       <option value="5">Basic Mod - $5</option>
       <option value="10">Simpler Advanced Mod - $10</option>
       <option value="15">Advanced Mod - $15</option>
     </select>
-    <label for="file-input">Attach Files:</label>
-    <input type="file" id="file-input" name="fileInput" multiple>
+    <div class="file-input-wrapper">
+      <label for="file-input" class="file-input-label">Attach Files</label>
+      <input type="file" id="file-input" class="file-input" name="fileInput" multiple>
+    </div>
     <div id="file-details"></div>
     <button type="submit">Submit</button>
     <div id="message"></div>
@@ -196,12 +247,7 @@
       
       const formData = new FormData();
       formData.append('content', `New commission from ${discordUser}\n**Description:** ${modDescription}\n**Mod Type:** ${modType === '5' ? 'Basic Mod - $5' : modType === '10' ? 'Simpler Advanced Mod - $10' : 'Advanced Mod - $15'}`);
-
-      Array.from(fileInput.files).forEach(file => {
-        formData.append('files[]', file);
-      });
-
-      const messageDiv = document.getElementById('message');
+      Array.from(fileInput.files).forEach(file => formData.append('file', file));
 
       try {
         const response = await fetch(webhookUrl, {
@@ -210,18 +256,23 @@
         });
 
         if (response.ok) {
-          messageDiv.textContent = 'Commission submitted successfully!';
-          messageDiv.className = 'success';
+          document.getElementById('message').textContent = 'Commission submitted successfully!';
+          document.getElementById('message').className = 'success';
           form.reset();
           fileDetails.innerHTML = '';
         } else {
-          messageDiv.textContent = 'Failed to submit commission. Please try again.';
-          messageDiv.className = 'error';
+          document.getElementById('message').textContent = 'Error submitting commission. Please try again.';
+          document.getElementById('message').className = 'error';
         }
       } catch (error) {
-        messageDiv.textContent = 'Error submitting commission. Please try again.';
-        messageDiv.className = 'error';
+        document.getElementById('message').textContent = 'Error submitting commission. Please try again.';
+        document.getElementById('message').className = 'error';
       }
+    });
+
+    window.addEventListener('beforeunload', function() {
+      fileInput.value = '';
+      fileDetails.innerHTML = '';
     });
   </script>
 </body>
