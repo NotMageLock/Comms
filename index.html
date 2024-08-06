@@ -150,6 +150,41 @@
       font-size: 14px;
       text-align: center;
     }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px 0;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%; /* Position the tooltip above the text */
+      left: 50%;
+      margin-left: -100px; /* Use half of the width to center the tooltip */
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #555 transparent transparent transparent;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -159,7 +194,7 @@
     <input type="text" id="discord-user" name="discordUser" required>
     <label for="mod-description">Mod Description:</label>
     <textarea id="mod-description" name="modDescription" required></textarea>
-    <label for="mod-type">Select Mod Type:</label>
+    <label for="mod-type">Select Mod Type: <span class="tooltip">ℹ<span class="tooltiptext">Paid through Steam Wallet credit</span></span></label>
     <select id="mod-type" name="modType" required>
       <option value="5">Basic Mod - $5</option>
       <option value="10">Simpler Advanced Mod - $10</option>
@@ -212,81 +247,52 @@
           messageDiv.className = 'error';
         }
       } catch (error) {
-        messageDiv.textContent = 'Error submitting commission. Please try again.';
+        messageDiv.textContent = 'Error: ' + error.message;
         messageDiv.className = 'error';
       }
     });
 
     function handleFileSelect() {
-      const fileInput = document.getElementById('file-input');
-      const fileDetails = document.getElementById('file-details');
-      const files = Array.from(fileInput.files);
-
-      files.forEach(file => {
-        if (!selectedFiles.includes(file)) {
-          selectedFiles.push(file);
-        }
-      });
-
-      updateFileDetails();
-    }
-
-    function updateFileDetails() {
+      const input = document.getElementById('file-input');
       const fileDetails = document.getElementById('file-details');
       fileDetails.innerHTML = '';
 
+      selectedFiles = Array.from(input.files);
       selectedFiles.forEach((file, index) => {
-        const fileDiv = document.createElement('div');
-        fileDiv.className = 'file-item';
+        const fileItem = document.createElement('div');
+        fileItem.classList.add('file-item');
 
-        const removeButton = document.createElement('button');
-        removeButton.className = 'remove-file';
-        removeButton.textContent = '×';
-        removeButton.onclick = () => {
-          selectedFiles = selectedFiles.filter((_, i) => i !== index);
-          updateFileDetails();
-        };
-        fileDiv.appendChild(removeButton);
-
-        const fileNameDiv = document.createElement('div');
-        fileNameDiv.textContent = file.name;
-        fileDiv.appendChild(fileNameDiv);
-
-        const fileSizeDiv = document.createElement('div');
-        fileSizeDiv.textContent = `${(file.size / 1024).toFixed(2)} KB`;
-        fileDiv.appendChild(fileSizeDiv);
-
+        let fileElement;
         if (file.type.startsWith('image/')) {
-          const img = document.createElement('img');
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            img.src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-          fileDiv.appendChild(img);
-        } else if (file.type.startsWith('audio/')) {
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            audio.src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-          fileDiv.appendChild(audio);
+          fileElement = document.createElement('img');
+          fileElement.src = URL.createObjectURL(file);
         } else if (file.type.startsWith('video/')) {
-          const video = document.createElement('video');
-          video.controls = true;
-          video.width = 100;
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            video.src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-          fileDiv.appendChild(video);
+          fileElement = document.createElement('video');
+          fileElement.src = URL.createObjectURL(file);
+          fileElement.controls = true;
+        } else if (file.type.startsWith('audio/')) {
+          fileElement = document.createElement('audio');
+          fileElement.src = URL.createObjectURL(file);
+          fileElement.controls = true;
+        } else {
+          fileElement = document.createElement('div');
+          fileElement.textContent = file.name;
         }
 
-        fileDetails.appendChild(fileDiv);
+        const removeButton = document.createElement('button');
+        removeButton.classList.add('remove-file');
+        removeButton.textContent = '✖';
+        removeButton.onclick = () => removeFile(index);
+
+        fileItem.appendChild(fileElement);
+        fileItem.appendChild(removeButton);
+        fileDetails.appendChild(fileItem);
       });
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      handleFileSelect();
     }
   </script>
 </body>
